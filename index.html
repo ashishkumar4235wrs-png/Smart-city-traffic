@@ -21,22 +21,22 @@
         <h1 class="text-2xl font-bold text-cyan-400 flex items-center gap-2">
             <i class="fa-solid fa-city"></i> ALL-INDIA AI SMART CITY COMMAND CENTER
         </h1>
-        <p class="text-xs text-slate-400">PUNJAB, CHANDIGARH, BIHAR, GUJARAT, HYDERABAD, BANGALORE & ALL 28 STATES COVERAGE</p>
+        <p class="text-xs text-slate-400">CHANDIGARH (ALL SECTORS 1-56 & TRICITY), PUNJAB, BIHAR, GUJARAT & ALL INDIA COVERAGE</p>
     </header>
 
     <!-- STEP 1 & STEP 2 SEARCH PANEL -->
     <div class="bg-slate-900/80 p-4 rounded-xl border border-cyan-500/30 mb-6">
         <p class="text-xs font-semibold text-cyan-300 mb-3">
-            ◆ STEP 1: TYPE ANY CITY / DISTRICT / STATE (e.g., Chandigarh, Amritsar, Ludhiana, Nawada, Patna, Ahmedabad, Hyderabad) | STEP 2: CHOOSE ZONE
+            ◆ STEP 1: TYPE ANY CITY / DISTRICT / SECTOR (e.g., Chandigarh, Sector 17, Amritsar, Nawada, Ahmedabad) | STEP 2: CHOOSE ZONE
         </p>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Search Box -->
             <div>
-                <label class="block text-xs text-slate-400 mb-1">Search Any District / City in India</label>
+                <label class="block text-xs text-slate-400 mb-1">Search Any City / District / Sector in India</label>
                 <div class="relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-xs"></i>
-                    <input type="text" id="cityInput" placeholder="Type city (e.g., Chandigarh, Amritsar, Nawada, Ahmedabad...)" 
+                    <input type="text" id="cityInput" placeholder="Type city or sector (e.g., Chandigarh, Sector 22, Nawada, Amritsar...)" 
                            oninput="updateLocations()" 
                            class="w-full bg-slate-950 text-cyan-200 border border-cyan-500/40 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:border-cyan-400">
                 </div>
@@ -84,11 +84,34 @@
         </div>
     </div>
 
-    <!-- DYNAMIC JAVASCRIPT LOGIC WITH PUNJAB, CHANDIGARH, BIHAR, GUJARAT DATABASE -->
+    <!-- ALL CHANDIGARH SECTORS + PUNJAB + BIHAR + GUJARAT LOGIC -->
     <script>
+        // Generate All Chandigarh Sectors 1 to 56 Automatically
+        const chandigarhFullSectors = [];
+        for (let i = 1; i <= 56; i++) {
+            if (i === 13) continue; // Sector 13 doesn't exist officially in Chandigarh, but Manimajra is used
+            chandigarhFullSectors.push(`Sector ${i} Main Market Circle`);
+            chandigarhFullSectors.push(`Sector ${i} Traffic Signal Light Chowk`);
+        }
+        
+        // Add Landmark Zones for Chandigarh & Tricity
+        chandigarhFullSectors.unshift(
+            "Sector 17 Plaza Junction", 
+            "Sukhna Lake Entry Zone", 
+            "Rock Garden Gate Signal",
+            "Elante Mall Industrial Area Phase 1", 
+            "Rajiv Gandhi IT Park Technology Park", 
+            "ISBT Sector 43 Main Bus Hub", 
+            "ISBT Sector 17 City Bus Stand", 
+            "PGI Chowk & Sector 12 Panjab University",
+            "Manimajra Housing Board Light Point",
+            "Mohali Phase 7 Fortis Chowk",
+            "Mohali Airport Road VR Punjab Junction",
+            "Panchkula Sector 5 City Center Circle"
+        );
+
         const knownHubs = {
-            // CHANDIGARH SECTORS
-            "chandigarh": ["Sector 17 Plaza Junction", "Sector 35 Market Circle", "Sukhna Lake Entry Zone", "Elante Mall Industrial Area", "Rajiv Gandhi IT Park", "Sector 43 ISBT Hub", "PGI Chowk Sector 12", "Sector 22 Shastri Market Signal", "Sector 11 University Gate", "Sector 26 Transport Nagar"],
+            "chandigarh": chandigarhFullSectors,
             
             // PUNJAB ALL DISTRICTS
             "amritsar": ["Golden Temple Plaza Chowk", "Hall Gate Crossing", "Ranjit Avenue C-Block Signal", "Amritsar Cantt Railway Station Road", "GT Road Bypass Junction"],
@@ -97,33 +120,20 @@
             "patiala": ["Mall Road Fountain Chowk", "Leela Bhawan Market Signal", "Bus Stand Road Junction", "Thapar University Gate Chowk"],
             "mohali": ["Phase 7 Fortis Chowk", "Sector 62 City Center Circle", "VR Punjab Mall Kharar Junction", "Airport Road Chowk", "Phase 3B2 Market Signal"],
             "bathinda": ["Rose Garden Chowk", "Mall Road Commercial Signal", "Bathinda Junction Station Area"],
-            "pathankot": ["Dhangu Road Junction", "Bus Stand Circle", "Pathankot Cantt Station Area"],
-            "hoshiarpur": ["Shimla Pahari Chowk", "Session Chowk Junction"],
-            "gurdaspur": ["Jahaj Ghar Chowk", "GT Road Bypass Circle"],
-            "firozpur": ["Cantt Board Circle", "Main Bus Stand Junction"],
-            "faridkot": ["Jubilee Tower Chowk", "Medical College Road Circle"],
-            "sangrur": ["Traffic Chowk Junction", "Patiala Road Circle"],
-
+            
             // BIHAR ALL DISTRICTS
             "nawada": ["Main City Center / Praja Tantra Chowk", "Railway Station Road", "Gongoya Bus Stand Junction", "NH 31 Bypass Intersection", "Sadar Hospital Road Circle"],
             "aliganj": ["Main Market Junction", "Bypass Crossing Signal", "Block Office Road Chowk"],
             "patna": ["Patna Junction Roundabout", "Dak Bunglow Chowk", "Gandhi Maidan Central Circle", "Boring Road Crossing", "Patliputra Industrial Area", "AIIMS Patna Zone"],
             "gaya": ["Mahabodhi Temple Road Zone", "Gaya Junction Station Road", "Vishnupad Temple Circle", "GT Road Bypass Junction"],
-            "muzaffarpur": ["Kalambagh Chowk", "Muzaffarpur Junction Road", "Bairia Bus Stand Circle"],
-            "bhagalpur": ["Tilka Manjhi Chowk", "Station Road Market", "Zero Mile Junction"],
-            "darbhanga": ["Laheriasarai Tower Chowk", "Darbhanga Junction Road"],
-
+            
             // GUJARAT ALL DISTRICTS
-            "ahmedabad": ["SG Highway ISCON Junction", "Ashram Road Income Tax Circle", "Kalupur Railway Station Hub", "Kankaria Lake Front Road", "SG Highway Karnavati Club Signal"],
-            "surat": ["Ring Road Textile Market Junction", "Dumas Road VR Mall Signal", "Surat Railway Station Circle", "Adajan Hazira Highway Crossing"],
-            "vadodara": ["Alkapuri RC Dutt Road Circle", "Sayajigunj Station Square", "Fathehgunj Flyover Junction"],
-            "rajkot": ["Yagnik Road Imperial Heights Chowk", "Kalawad Road KKV Hall Signal", "TRP Mall Circle"],
-
-            // HYDERABAD & TELANGANA
-            "hyderabad": ["HITEC City Cyber Towers Junction", "Gachibowli ORR Signal", "Charminar Monument Circle", "Begumpet Airport Flyover", "Secunderabad Station Road", "Madhapur Metro Hub"],
-
-            // BANGALORE & KARNATAKA
-            "bangalore": ["Silk Board Junction Signal", "MG Road Commercial Circle", "100 Feet Road Indiranagar Crossing", "Electronic City Flyover Plaza", "Hebbal Flyover Junction", "Whitefield ITPL Main Road"]
+            "ahmedabad": ["SG Highway ISCON Junction", "Ashram Road Income Tax Circle", "Kalupur Railway Station Hub", "Kankaria Lake Front Road"],
+            "surat": ["Ring Road Textile Market Junction", "Dumas Road VR Mall Signal", "Surat Railway Station Circle"],
+            
+            // HYDERABAD & BANGALORE
+            "hyderabad": ["HITEC City Cyber Towers Junction", "Gachibowli ORR Signal", "Charminar Monument Circle"],
+            "bangalore": ["Silk Board Junction Signal", "MG Road Commercial Circle", "100 Feet Road Indiranagar Crossing"]
         };
 
         function updateLocations() {
@@ -138,34 +148,58 @@
                 return;
             }
 
-            let matchedKey = Object.keys(knownHubs).find(key => key === inputVal || inputVal.includes(key));
-
-            if (matchedKey) {
-                const zones = knownHubs[matchedKey];
-                const displayCity = rawVal.charAt(0).toUpperCase() + rawVal.slice(1);
-                zones.forEach(zone => {
-                    let option = document.createElement("option");
-                    option.value = zone;
-                    option.textContent = displayCity + " - " + zone;
-                    selectBox.appendChild(option);
+            // Handle Sector specific searches or Chandigarh
+            if (inputVal.includes("chandigarh") || inputVal.includes("sector") || inputVal.includes("sec")) {
+                const displayCity = "Chandigarh";
+                chandigarhFullSectors.forEach(zone => {
+                    // Filter if user typed specific sector e.g. "Sector 22"
+                    if (inputVal.includes("chandigarh") || zone.toLowerCase().includes(inputVal)) {
+                        let option = document.createElement("option");
+                        option.value = zone;
+                        option.textContent = displayCity + " - " + zone;
+                        selectBox.appendChild(option);
+                    }
                 });
-            } else {
-                // UNIVERSAL DYNAMIC SYSTEM FOR ANY TOWN / VILLAGE IN ALL STATES
-                const formattedName = rawVal.charAt(0).toUpperCase() + rawVal.slice(1);
-                const universalZones = [
-                    `${formattedName} - Central Market & Commercial Hub`,
-                    `${formattedName} - Main Railway Station / Bus Terminal Chowk`,
-                    `${formattedName} - Collectorate & District Court Circle`,
-                    `${formattedName} - State Highway / National Highway Junction`,
-                    `${formattedName} - Civil Lines & Hospital Area Signal`
-                ];
+                
+                if (selectBox.options.length === 0) {
+                    chandigarhFullSectors.forEach(zone => {
+                        let option = document.createElement("option");
+                        option.value = zone;
+                        option.textContent = displayCity + " - " + zone;
+                        selectBox.appendChild(option);
+                    });
+                }
+            } 
+            else {
+                let matchedKey = Object.keys(knownHubs).find(key => key === inputVal || inputVal.includes(key));
 
-                universalZones.forEach(zone => {
-                    let option = document.createElement("option");
-                    option.value = zone;
-                    option.textContent = zone;
-                    selectBox.appendChild(option);
-                });
+                if (matchedKey) {
+                    const zones = knownHubs[matchedKey];
+                    const displayCity = rawVal.charAt(0).toUpperCase() + rawVal.slice(1);
+                    zones.forEach(zone => {
+                        let option = document.createElement("option");
+                        option.value = zone;
+                        option.textContent = displayCity + " - " + zone;
+                        selectBox.appendChild(option);
+                    });
+                } else {
+                    // UNIVERSAL FALLBACK FOR ANY CITY/VILLAGE IN INDIA
+                    const formattedName = rawVal.charAt(0).toUpperCase() + rawVal.slice(1);
+                    const universalZones = [
+                        `${formattedName} - Central Market & Commercial Hub`,
+                        `${formattedName} - Main Railway Station / Bus Terminal Chowk`,
+                        `${formattedName} - Collectorate & District Court Circle`,
+                        `${formattedName} - State Highway / National Highway Junction`,
+                        `${formattedName} - Civil Lines & Hospital Area Signal`
+                    ];
+
+                    universalZones.forEach(zone => {
+                        let option = document.createElement("option");
+                        option.value = zone;
+                        option.textContent = zone;
+                        selectBox.appendChild(option);
+                    });
+                }
             }
 
             changeTargetLocation();
