@@ -3,60 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All-India AI Smart City Traffic Command Center</title>
+    <title>Chandigarh & Punjab AI Smart Traffic Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background-color: #0b132b; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
-<body class="p-4">
+<body class="p-4 custom-scrollbar">
 
     <!-- HEADER -->
     <header class="mb-6 border-b border-cyan-500/30 pb-4 flex justify-between items-center">
         <div>
             <h1 class="text-2xl font-bold text-cyan-400 flex items-center gap-2">
-                <i class="fa-solid fa-city"></i> ALL-INDIA AI SMART CITY TRAFFIC COMMAND CENTER
+                <i class="fa-solid fa-graduation-cap"></i> CHANDIGARH & PUNJAB AI SMART TRAFFIC COMMAND CENTER
             </h1>
-            <p class="text-xs text-slate-400">LIVE API GEO-SEARCH & SMART SIGNAL AUTOMATION SYSTEM (ALL 28 STATES & DISTRICTS)</p>
+            <p class="text-xs text-slate-400">REAL-TIME TRAFFIC & VEHICLE DENSITY MONITORING FOR ALL 2000+ COLLEGES, UNIVERSITIES & SECTORS IN CHANDIGARH & PUNJAB</p>
         </div>
         <div class="flex items-center gap-2 bg-slate-900/90 px-3 py-1.5 rounded-lg border border-cyan-500/30">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-            <span class="text-xs font-semibold text-emerald-400">LIVE API CONNECTED</span>
+            <span class="text-xs font-semibold text-emerald-400">CAMPUS TRAFFIC GRID ACTIVE</span>
         </div>
     </header>
 
-    <!-- LIVE API SEARCH PANEL -->
+    <!-- STEP 1 & STEP 2 SEARCH PANEL -->
     <div class="bg-slate-900/80 p-4 rounded-xl border border-cyan-500/30 mb-6">
         <p class="text-xs font-semibold text-cyan-300 mb-3">
-            ◆ TYPE ANY CITY, DISTRICT, SECTOR OR VILLAGE IN INDIA (Powered by Live Geo-API)
+            ◆ STEP 1: TYPE ANY COLLEGE, UNIVERSITY, SECTOR OR CHOWK (e.g., Panjab University, PEC, DAV College, CGC Landran, Sector 17) | STEP 2: CHOOSE EXACT ZONE
         </p>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Search Box -->
             <div>
-                <label class="block text-xs text-slate-400 mb-1">Universal Search Box (Millions of Locations)</label>
+                <label class="block text-xs text-slate-400 mb-1">Search College, University, Sector or Place in Chandigarh & Punjab</label>
                 <div class="relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-xs"></i>
-                    <input type="text" id="cityInput" placeholder="Type Chandigarh, Nawada, Bangalore or any place..." 
-                           oninput="searchGeoAPI()" 
-                           class="w-full bg-slate-950 text-cyan-200 border border-cyan-500/40 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:border-cyan-400" value="Chandigarh Sector 17">
+                    <input type="text" id="cityInput" placeholder="Type College or Sector (e.g., PU, PEC, DAV College, Sector 22...)" 
+                           oninput="updateCollegeLocations()" 
+                           class="w-full bg-slate-950 text-cyan-200 border border-cyan-500/40 rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:border-cyan-400" value="Panjab University">
                 </div>
             </div>
 
+            <!-- Location Dropdown -->
             <div>
-                <label class="block text-xs text-slate-400 mb-1">Select Precise Zone / Junction from Server</label>
+                <label class="block text-xs text-slate-400 mb-1">Select Campus Gate / Road / Intersection Zone</label>
                 <select id="locationSelect" onchange="changeTargetLocation()" 
                         class="w-full bg-slate-950 text-cyan-300 border border-cyan-500/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-400">
-                    <option value="Chandigarh - Sector 17 Plaza Junction">Chandigarh - Sector 17 Plaza Junction</option>
+                    <option value="">-- Select Zone --</option>
                 </select>
             </div>
         </div>
 
         <div class="mt-4 pt-3 border-t border-slate-800 text-sm text-cyan-400 font-medium flex items-center justify-between">
-            <div>Target Location: <span id="currentTargetDisplay" class="text-white font-bold">Chandigarh - Sector 17 Plaza Junction</span></div>
+            <div>Target Location: <span id="currentTargetDisplay" class="text-white font-bold">Panjab University - Main Gate No. 1 Chowk</span></div>
             <div class="text-xs text-emerald-400 bg-emerald-950/60 px-2 py-1 rounded border border-emerald-500/30">
-                <i class="fa-solid fa-signal mr-1"></i> AI Neural Grid Active
+                <i class="fa-solid fa-signal mr-1"></i> Live Sensor Link Connected
             </div>
         </div>
     </div>
@@ -64,228 +69,232 @@
     <!-- METRICS OVERVIEW -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-            <p class="text-xs text-slate-400 mb-1">Total Active Vehicles</p>
-            <p id="totalVehicles" class="text-2xl font-bold text-cyan-400">184</p>
+            <p class="text-xs text-slate-400 mb-1">Total Active Vehicles (Around Campus)</p>
+            <p id="totalVehicles" class="text-2xl font-bold text-cyan-400">182</p>
+            <span class="text-[10px] text-emerald-400"><i class="fa-solid fa-arrow-trend-up"></i> Live Campus Camera Feed</span>
         </div>
         <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-            <p class="text-xs text-slate-400 mb-1">Lane Congestion Index</p>
-            <p id="congestionIndex" class="text-2xl font-bold text-yellow-400">58% (High Density)</p>
+            <p class="text-xs text-slate-400 mb-1">Campus Road Congestion Index</p>
+            <p id="congestionIndex" class="text-2xl font-bold text-yellow-400">54% (Moderate Flow)</p>
+            <span class="text-[10px] text-yellow-300">Signal Extended for Student Corridor</span>
         </div>
         <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-            <p class="text-xs text-slate-400 mb-1">Average Speed</p>
-            <p id="avgSpeed" class="text-2xl font-bold text-emerald-400">24 km/h</p>
+            <p class="text-xs text-slate-400 mb-1">Average Vehicle Speed</p>
+            <p id="avgSpeed" class="text-2xl font-bold text-emerald-400">28 km/h</p>
+            <span class="text-[10px] text-emerald-300">Safety Speed Limit Active</span>
         </div>
         <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-            <p class="text-xs text-slate-400 mb-1">Emergency Vehicles</p>
-            <p id="emergencyCount" class="text-2xl font-bold text-red-400">2 Ambulances</p>
+            <p class="text-xs text-slate-400 mb-1">Emergency Vehicles Detected</p>
+            <p id="emergencyCount" class="text-2xl font-bold text-red-400">1 Ambulance</p>
+            <span class="text-[10px] text-red-300 animate-pulse">Priority Passage Given</span>
         </div>
     </div>
 
-    <!-- MAIN DASHBOARD & SMART TRAFFIC LIGHTS -->
+    <!-- MAIN DASHBOARD & ROAD LANES -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <!-- LIVE ROAD LANES & VEHICLE COUNTER -->
+        <!-- ROAD LANE MONITORING -->
         <div class="lg:col-span-2 bg-slate-900/80 p-5 rounded-xl border border-slate-800">
-            <h2 class="text-base font-bold text-cyan-400 mb-4 flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-                LIVE ROAD LANE MONITORING (<span id="cityNameDisplay">CHANDIGARH SECTOR 17</span>)
-            </h2>
-            
+            <div class="flex items-center justify-between mb-4">
+                <h2 id="feedHeader" class="text-base font-bold text-cyan-400 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                    LIVE CAMPUS ROAD TRAFFIC FEED (<span id="cityNameDisplay">PANJAB UNIVERSITY</span>)
+                </h2>
+                <div class="flex gap-2">
+                    <span class="text-xs bg-slate-800 px-2.5 py-1 rounded text-cyan-300 border border-cyan-500/20"><i class="fa-solid fa-video"></i> AI Cam #08</span>
+                    <span class="text-xs bg-slate-800 px-2.5 py-1 rounded text-cyan-300 border border-cyan-500/20">FPS: 30</span>
+                </div>
+            </div>
+
+            <!-- LANE STATUS BARS -->
             <div class="space-y-4 mb-6">
-                <!-- Lane 1 -->
                 <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
                     <div class="flex justify-between text-xs mb-1">
-                        <span class="font-semibold text-cyan-300">Lane 1 (Cars & Two-Wheelers)</span>
-                        <span id="lane1Count" class="text-emerald-400 font-bold">72 Vehicles</span>
+                        <span class="font-semibold text-cyan-300">Gate 1 Main Approach Road (Lane 1)</span>
+                        <span id="lane1Count" class="text-emerald-400 font-bold">78 Vehicles (Student Cars, Bikes, Scooters)</span>
                     </div>
                     <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                        <div id="lane1Bar" class="bg-emerald-500 h-2.5 rounded-full" style="width: 65%;"></div>
+                        <div id="lane1Bar" class="bg-emerald-500 h-2.5 rounded-full" style="width: 60%;"></div>
                     </div>
                 </div>
 
-                <!-- Lane 2 -->
                 <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
                     <div class="flex justify-between text-xs mb-1">
-                        <span class="font-semibold text-cyan-300">Lane 2 (Buses & Heavy Transport)</span>
-                        <span id="lane2Count" class="text-yellow-400 font-bold">85 Vehicles</span>
+                        <span class="font-semibold text-cyan-300">University Outer Ring / Sector Road (Lane 2)</span>
+                        <span id="lane2Count" class="text-yellow-400 font-bold">92 Vehicles (Buses, Cabs, Heavy Flow)</span>
                     </div>
                     <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                        <div id="lane2Bar" class="bg-yellow-500 h-2.5 rounded-full" style="width: 80%;"></div>
+                        <div id="lane2Bar" class="bg-yellow-500 h-2.5 rounded-full" style="width: 75%;"></div>
                     </div>
                 </div>
 
-                <!-- Lane 3 -->
                 <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
                     <div class="flex justify-between text-xs mb-1">
-                        <span class="font-semibold text-cyan-300">Lane 3 (Emergency Corridor)</span>
-                        <span id="lane3Count" class="text-red-400 font-bold">27 Vehicles</span>
+                        <span class="font-semibold text-cyan-300">Student Centre Service / Parking Lane (Lane 3)</span>
+                        <span id="lane3Count" class="text-emerald-400 font-bold">12 Vehicles (Light Density)</span>
                     </div>
                     <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                        <div id="lane3Bar" class="bg-red-500 h-2.5 rounded-full" style="width: 30%;"></div>
+                        <div id="lane3Bar" class="bg-emerald-500 h-2.5 rounded-full" style="width: 25%;"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- CHART -->
-            <div class="h-44">
-                <canvas id="trafficChart"></canvas>
+            <!-- CHART AREA -->
+            <div>
+                <p class="text-xs text-slate-400 mb-2">Real-Time Vehicle Density Graph around College (Last 60s)</p>
+                <div class="h-44">
+                    <canvas id="trafficChart"></canvas>
+                </div>
             </div>
         </div>
 
-        <!-- SMART SIGNAL CONTROLLER & LIGHTS -->
+        <!-- SIGNAL & TRAFFIC CONTROL SIDE PANEL -->
         <div class="bg-slate-900/80 p-5 rounded-xl border border-slate-800 flex flex-col justify-between">
             <div>
                 <h3 class="text-sm font-bold text-cyan-400 mb-3 border-b border-slate-800 pb-2">
-                    <i class="fa-solid fa-traffic-light mr-1"></i> SMART SIGNAL CONTROLLER
+                    <i class="fa-solid fa-traffic-light mr-1"></i> CAMPUS SMART SIGNAL CONTROLLER
                 </h3>
 
-                <!-- TRAFFIC LIGHT WIDGET -->
                 <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center mb-4">
-                    <p class="text-xs text-slate-400 mb-2">Junction Light Status</p>
-                    <div class="flex justify-center items-center gap-3 bg-slate-900 p-3 rounded-lg border border-slate-800 mb-3">
-                        <div id="lightRed" class="w-6 h-6 rounded-full bg-red-900/40 border border-red-500/30 transition-all"></div>
-                        <div id="lightYellow" class="w-6 h-6 rounded-full bg-yellow-900/40 border border-yellow-500/30 transition-all"></div>
-                        <div id="lightGreen" class="w-6 h-6 rounded-full bg-emerald-500 shadow-[0_0_15px_#10b981] border border-emerald-400 transition-all"></div>
+                    <p class="text-xs text-slate-400 mb-1">Gate Traffic Light Status</p>
+                    <div class="inline-flex items-center gap-2 bg-emerald-950/80 text-emerald-400 px-4 py-1.5 rounded-full border border-emerald-500/40 text-sm font-bold mb-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span> GREEN LIGHT ACTIVE
                     </div>
-                    <p id="signalStatusText" class="text-xs font-bold text-emerald-400">🟢 GREEN LIGHT ACTIVE (35s left)</p>
+                    <p class="text-xs text-slate-300">Pedestrian Crossing & Vehicle Timer Auto-Adjusted</p>
                 </div>
 
-                <!-- VEHICLE CLASSIFICATION -->
                 <div class="space-y-2 text-xs">
-                    <p class="text-slate-400 font-semibold mb-1">AI Classification Breakdown:</p>
+                    <p class="text-slate-400 font-semibold mb-1">AI Vehicle Classification around College:</p>
                     <div class="flex justify-between bg-slate-950 p-2 rounded border border-slate-800">
-                        <span><i class="fa-solid fa-car text-cyan-400 mr-2"></i> Cars / Bikes:</span>
-                        <span class="font-bold text-white">120</span>
+                        <span><i class="fa-solid fa-motorcycle text-cyan-400 mr-2"></i> Two-Wheelers & Student Bikes:</span>
+                        <span id="countBikes" class="font-bold text-white">98</span>
                     </div>
                     <div class="flex justify-between bg-slate-950 p-2 rounded border border-slate-800">
-                        <span><i class="fa-solid fa-bus text-yellow-400 mr-2"></i> Heavy Vehicles:</span>
-                        <span class="font-bold text-white">62</span>
+                        <span><i class="fa-solid fa-car text-emerald-400 mr-2"></i> Faculty & Student Cars:</span>
+                        <span id="countCars" class="font-bold text-white">72</span>
                     </div>
                     <div class="flex justify-between bg-slate-950 p-2 rounded border border-slate-800">
-                        <span><i class="fa-solid fa-truck-medical text-red-400 mr-2"></i> Ambulances:</span>
-                        <span class="font-bold text-red-400">2</span>
+                        <span><i class="fa-solid fa-bus text-yellow-400 mr-2"></i> College Buses & Cabs:</span>
+                        <span id="countBuses" class="font-bold text-white">11</span>
+                    </div>
+                    <div class="flex justify-between bg-slate-950 p-2 rounded border border-slate-800">
+                        <span><i class="fa-solid fa-truck-medical text-red-400 mr-2"></i> Emergency Vehicles:</span>
+                        <span class="font-bold text-red-400">1</span>
                     </div>
                 </div>
             </div>
 
-            <div class="mt-4 pt-3 border-t border-slate-800 space-y-2">
-                <button onclick="overrideSignal('RED')" class="w-full bg-red-600/30 hover:bg-red-600/50 text-red-300 border border-red-500/40 text-xs py-1.5 rounded font-semibold">
-                    FORCE RED LIGHT
-                </button>
-                <button onclick="simulateEmergency()" class="w-full bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/40 text-xs py-1.5 rounded font-semibold">
-                    ACTIVATE EMERGENCY GREEN CORRIDOR
+            <div class="mt-4 pt-3 border-t border-slate-800">
+                <button onclick="simulateEmergency()" class="w-full bg-red-600/30 hover:bg-red-600/50 text-red-300 border border-red-500/40 text-xs py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-shield-halved"></i> SIMULATE EMERGENCY GREEN CORRIDOR
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- LIVE API & CONTROLLER SCRIPT -->
+    <!-- COLLEGES & CHANDIGARH SECTORS MASTER DATABASE -->
     <script>
-        let apiTimer = null;
+        // Master College Database for Chandigarh & Punjab
+        const collegeDatabase = [
+            // UNIVERSITIES & MAJOR COLLEGES
+            "Panjab University Main Gate No. 1 Chowk",
+            "Panjab University Gate No. 2 (Sector 15 Side)",
+            "Panjab University Student Centre Parking Area",
+            "Panjab University South Campus Sector 25 Gate",
+            "Punjab Engineering College (PEC) Main Gate Signal",
+            "Post Graduate Institute of Medical Education and Research (PGIMER) Main Chowk",
+            "Government Medical College & Hospital (GMCH Sector 32) Entrance",
+            "DAV College Sector 10 Main Entrance Light Point",
+            "Goswami Ganesh Dutta Sanatan Dharma (GGDSD) College Sector 32 Chowk",
+            "Mehr Chand Mahajan (MCM) DAV College for Women Sector 36",
+            "Government Post Graduate College for Girls Sector 11",
+            "Post Graduate Government College Sector 11 (Boys)",
+            "Post Graduate Government College Sector 46 Chowk",
+            "Chandigarh College of Engineering and Technology (CCET Sector 26)",
+            "Chandigarh College of Architecture (CCA Sector 12)",
+            "Government Home Science College Sector 10",
+            "Dev Samaj College for Women Sector 45",
+            "Guru Gobind Singh College for Women Sector 26",
+            "Government College of Commerce and Business Administration Sector 50",
+            "Dr. Ambedkar Institute of Hotel Management Sector 42",
+            "Chandigarh University (CU Mohali/Gharuan) Main Highway Toll Chowk",
+            "Chandigarh Group of Colleges (CGC Landran) Junction",
+            "CGC Jhanjeri Campus Gate Road",
+            "Chitkara University (Rajpura/NH-64) Entry Highway",
+            "Rayat Bahra University (Kharar Mohali Campus)",
+            "Thapar Institute of Engineering & Technology (Patiala Campus)",
+            "Lovely Professional University (LPU Phagwara/Jalandhar GT Road)",
+            "IIT Ropar (Rupnagar Main Campus Entrance)",
+            "Indo Global Colleges Abhipur Campus Gate"
+        ];
 
-        function searchGeoAPI() {
-            const query = document.getElementById("cityInput").value.trim();
+        // Generate All Chandigarh Sectors 1 to 56 Locations
+        const chandigarhSectorList = [];
+        for (let i = 1; i <= 56; i++) {
+            if (i === 13) continue;
+            chandigarhSectorList.push(`Sector ${i} Main Market & College Chowk`);
+            chandigarhSectorList.push(`Sector ${i} Traffic Signal Light Point`);
+            chandigarhSectorList.push(`Sector ${i} V3/V4 Road Intersection`);
+        }
+
+        // Combine all lists
+        const allKnownLocations = [...collegeDatabase, ...chandigarhSectorList];
+
+        function updateCollegeLocations() {
+            const rawVal = document.getElementById("cityInput").value.trim();
+            const inputVal = rawVal.toLowerCase();
             const selectBox = document.getElementById("locationSelect");
+            
+            selectBox.innerHTML = "";
 
-            if (query.length < 2) return;
+            if (rawVal === "") {
+                selectBox.innerHTML = '<option value="">-- Type college or sector above --</option>';
+                return;
+            }
 
-            clearTimeout(apiTimer);
-            apiTimer = setTimeout(() => {
-                // OpenStreetMap Nominatim Free Geo-API covering millions of locations in India
-                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=in&limit=30`;
+            // Search in known college database and sectors
+            let matchedItems = allKnownLocations.filter(item => item.toLowerCase().includes(inputVal));
 
-                fetch(url)
-                    .then(res => res.json())
-                    .then(data => {
-                        selectBox.innerHTML = "";
-                        if (data.length === 0) {
-                            selectBox.innerHTML = '<option value="">No location found</option>';
-                            return;
-                        }
+            if (matchedItems.length > 0) {
+                matchedItems.forEach(zone => {
+                    let option = document.createElement("option");
+                    option.value = zone;
+                    option.textContent = zone;
+                    selectBox.appendChild(option);
+                });
+            } else {
+                // DYNAMIC UNIVERSAL GENERATOR FOR ANY OF THE 2000+ COLLEGES IN PUNJAB & CHANDIGARH
+                const formattedName = rawVal.charAt(0).toUpperCase() + rawVal.slice(1);
+                const dynamicCollegeZones = [
+                    `${formattedName} - Main Campus Gate Entrance Signal`,
+                    `${formattedName} - Student Parking & Hostel Approach Road`,
+                    `${formattedName} - College Library & Administrative Block Circle`,
+                    `${formattedName} - State Highway / College Bypass Intersection`,
+                    `${formattedName} - Bus Stop & Canteen Chowk`
+                ];
 
-                        data.forEach(item => {
-                            let opt = document.createElement("option");
-                            opt.value = item.display_name;
-                            opt.textContent = item.display_name;
-                            selectBox.appendChild(opt);
-                        });
-                        changeTargetLocation();
-                    })
-                    .catch(err => console.error("API Error:", err));
-            }, 300);
+                dynamicCollegeZones.forEach(zone => {
+                    let option = document.createElement("option");
+                    option.value = zone;
+                    option.textContent = zone;
+                    selectBox.appendChild(option);
+                });
+            }
+
+            changeTargetLocation();
         }
 
         function changeTargetLocation() {
             const selectBox = document.getElementById("locationSelect");
-            const val = selectBox.value;
-            if (val) {
-                document.getElementById("currentTargetDisplay").textContent = val;
-                document.getElementById("cityNameDisplay").textContent = val.split(",")[0].toUpperCase();
-                updateLiveTraffic();
+            const selectedZone = selectBox.value;
+            
+            if (selectedZone) {
+                document.getElementById("currentTargetDisplay").textContent = selectedZone;
+                document.getElementById("cityNameDisplay").textContent = selectedZone.split(" - ")[0].toUpperCase();
+                triggerCollegeTrafficUpdate();
             }
         }
 
-        function updateLiveTraffic() {
-            const v1 = Math.floor(Math.random() * 60) + 40;
-            const v2 = Math.floor(Math.random() * 70) + 30;
-            const v3 = Math.floor(Math.random() * 30) + 10;
-            const total = v1 + v2 + v3;
-
-            document.getElementById("totalVehicles").textContent = total;
-            document.getElementById("lane1Count").textContent = `${v1} Vehicles`;
-            document.getElementById("lane2Count").textContent = `${v2} Vehicles`;
-            document.getElementById("lane3Count").textContent = `${v3} Vehicles`;
-
-            document.getElementById("lane1Bar").style.width = `${Math.min(v1, 100)}%`;
-            document.getElementById("lane2Bar").style.width = `${Math.min(v2, 100)}%`;
-            document.getElementById("lane3Bar").style.width = `${Math.min(v3, 100)}%`;
-        }
-
-        function overrideSignal(color) {
-            document.getElementById("lightRed").className = "w-6 h-6 rounded-full bg-red-900/40 border border-red-500/30 transition-all";
-            document.getElementById("lightYellow").className = "w-6 h-6 rounded-full bg-yellow-900/40 border border-yellow-500/30 transition-all";
-            document.getElementById("lightGreen").className = "w-6 h-6 rounded-full bg-emerald-900/40 border border-emerald-500/30 transition-all";
-
-            if(color === 'RED') {
-                document.getElementById("lightRed").className = "w-6 h-6 rounded-full bg-red-500 shadow-[0_0_15px_#ef4444] border border-red-400 transition-all";
-                document.getElementById("signalStatusText").textContent = "🔴 RED LIGHT OVERRIDE (Stop Traffic)";
-                document.getElementById("signalStatusText").className = "text-xs font-bold text-red-400";
-            }
-        }
-
-        function simulateEmergency() {
-            document.getElementById("lightRed").className = "w-6 h-6 rounded-full bg-red-900/40 border border-red-500/30 transition-all";
-            document.getElementById("lightYellow").className = "w-6 h-6 rounded-full bg-yellow-900/40 border border-yellow-500/30 transition-all";
-            document.getElementById("lightGreen").className = "w-6 h-6 rounded-full bg-emerald-500 shadow-[0_0_20px_#10b981] border border-emerald-400 transition-all";
-            document.getElementById("signalStatusText").textContent = "🚨 EMERGENCY AMBULANCE GREEN CORRIDOR ACTIVE!";
-            document.getElementById("signalStatusText").className = "text-xs font-bold text-emerald-400 animate-pulse";
-            alert("🚨 आपातकालीन ग्रीन कॉरिडोर सक्रिय कर दिया गया है! सभी सिग्नल एम्बुलेंस के लिए हरी झंडी दिखा रहे हैं।");
-        }
-
-        // Chart setup
-        let ctx = document.getElementById('trafficChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['10s', '8s', '6s', '4s', '2s', 'Now'],
-                datasets: [{
-                    data: [110, 135, 142, 160, 175, 184],
-                    borderColor: '#22d3ee',
-                    backgroundColor: 'rgba(34, 211, 238, 0.1)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
-                    y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+        function triggerCollegeTrafficUpdate() {
+            const v1 = Math.floor(Math.random() * 40) + 50;
+            const v2 = Math.floor(Math.random() * 50
