@@ -17,9 +17,9 @@
 </head>
 <body>
 <h1>🎓 शहर ट्रैफिक कमांड सेंटर (Prototype)</h1>
-<p class="muted">शहर का नाम लिखें और "खोजें" दबाएँ। जगहें OpenStreetMap से आएँगी। गाड़ियाँ और signal समय simulation हैं।</p>
+<p class="muted">शहर का नाम लिखें, जैसे "Chandigarh" या "Chandigarh Sector 17"। सेक्टर, चौक, मॉल, अस्पताल OpenStreetMap से आएँगे। गाड़ियाँ और signal समय simulation हैं।</p>
 
-<input id="city" value="Chandigarh" placeholder="शहर का नाम लिखें">
+<input id="city" value="Chandigarh" placeholder="जैसे: Chandigarh Sector 17">
 <button id="go">खोजें</button>
 <div id="status" class="muted"></div>
 <div id="out"></div>
@@ -36,14 +36,16 @@ function seeded(str){ let h=0; for(const c of str) h=(h*31+c.charCodeAt(0))>>>0;
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 function buildQuery(city){
-  return `[out:json][timeout:60];
+  return `[out:json][timeout:90];
 area["name"="${city}"]->.a;
 (
+  nwr(area.a)["name"~"Sector|Chowk|Chowk|Mall|Hospital|PGI|Plaza|Market|ISBT|Airport|Stadium|University|College|Bus|Railway|Junction",i];
   nwr(area.a)["highway"="traffic_signals"]["name"];
-  nwr(area.a)["amenity"~"hospital|bus_station|college|university|school"]["name"];
-  nwr(area.a)["place"~"suburb|neighbourhood|village|quarter"]["name"];
+  nwr(area.a)["shop"="mall"]["name"];
+  nwr(area.a)["amenity"~"hospital|bus_station|college|university"]["name"];
+  nwr(area.a)["place"~"suburb|neighbourhood|quarter"]["name"];
 );
-out center 300;`;
+out center 800;`;
 }
 
 async function askOverpass(query){
@@ -58,9 +60,9 @@ async function askOverpass(query){
       const text = await r.text();
       if(!r.ok){ lastErr = `सर्वर ${r.status}`; continue; }
       try{ return JSON.parse(text); }
-      catch(e){ lastErr = 'सर्वर ने JSON की जगह दूसरा जवाब भेजा (शायद busy है)'; continue; }
+      catch(e){ lastErr = 'सर्वर ने व्यस्त जवाब भेजा'; continue; }
     }catch(e){
-      lastErr = 'नेटवर्क या CORS समस्या: ' + e.message;
+      lastErr = 'नेटवर्क समस्या: ' + e.message;
     }
   }
   throw new Error(lastErr + '. 30 सेकंड बाद फिर "खोजें" दबाएँ।');
@@ -76,8 +78,9 @@ function render(elements){
     const green = Math.min(90, 25 + Math.round(veh/3));
     const red = 120 - green;
     const crowd = veh>120 ? 'ज़्यादा' : veh>70 ? 'मध्यम' : 'कम';
-    const type = p.tags.amenity || p.tags.highway || p.tags.place || '';
-    return {name, type, veh, crowd, green, red, amb, lat: p.lat ?? p.center?.lat, lon: p.lon ?? p.center?.lon};
+    const type = p.tags.amenity || p.tags.shop || p.tags.highway || p.tags.place || '';
+    const lat = p.lat ?? p.center?.lat, lon = p.lon ?? p.center?.lon;
+    return {name, type, veh, crowd, green, red, amb, lat, lon};
   }).sort((a,b)=>b.veh-a.veh);
 
   for(const r of rows){
@@ -85,7 +88,7 @@ function render(elements){
     div.className = 'card';
     div.innerHTML =
       `<b>${esc(r.name)}</b> <span class="muted">(${esc(r.type)})</span><br>` +
-      `<span class="muted">${r.lat ? r.lat.toFixed(4)+', '+r.lon.toFixed(4) : ''}</span><br>` +
+      (r.lat ? `<span class="muted">${r.lat.toFixed(4)}, ${r.lon.toFixed(4)}</span><br>` : '') +
       `गाड़ियाँ (सिम्युलेशन): ${r.veh} | भीड़: ${r.crowd}<br>` +
       `ग्रीन: ${r.green} सेकंड | लाल: ${r.red} सेकंड` +
       (r.amb ? `<br><span class="amb">🚑 एम्बुलेंस फँसी (सिम्युलेशन)</span>` : '');
@@ -94,18 +97,21 @@ function render(elements){
 }
 
 document.getElementById('go').onclick = async () => {
-  const city = document.getElementById('city').value.trim();
-  if(!city) return;
+  const typed = document.getElementById('city').value.trim();
+  if(!typed) return;
+  const city = typed.split(/\s+/)[0];                       // पहला शब्द = शहर
+  const filter = typed.slice(city.length).trim().toLowerCase(); // बाकी = फ़िल्टर, जैसे "sector 17"
   out.innerHTML = '';
-  st.textContent = 'जगहें ढूँढ रहे हैं (20-40 सेकंड लग सकते हैं)...';
+  st.textContent = 'जगहें ढूँढ रहे हैं (20-60 सेकंड लग सकते हैं)...';
   try{
     const data = await askOverpass(buildQuery(city));
-    const els = (data.elements || []).filter(x => x.tags && x.tags.name);
+    let els = (data.elements || []).filter(x => x.tags && x.tags.name);
+    if(filter) els = els.filter(x => x.tags.name.toLowerCase().includes(filter));
     if(!els.length){
-      st.textContent = `"${city}" के लिए कोई जगह नहीं मिली। अंग्रेज़ी में नाम लिखकर देखें।`;
+      st.textContent = `"${typed}" के लिए कोई जगह नहीं मिली। शहर का नाम सही है? OpenStreetMap में नाम अंग्रेज़ी में होता है।`;
       return;
     }
-    st.textContent = `${city}: ${els.length} जगहें मिलीं (OpenStreetMap से)`;
+    st.textContent = `${typed}: ${els.length} जगहें मिलीं (OpenStreetMap से)`;
     render(els);
   }catch(err){
     st.innerHTML = '<span class="err">गलती: ' + esc(err.message) + '</span>';
