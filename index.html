@@ -12,11 +12,12 @@
   .card{background:#111c33;border:1px solid #1e3a5f;border-radius:10px;padding:12px;margin-top:10px}
   .amb{color:#f87171;font-weight:bold}
   .muted{color:#94a3b8;font-size:13px}
+  .err{color:#fca5a5;font-size:14px;margin-top:8px;word-break:break-word}
 </style>
 </head>
 <body>
 <h1>🎓 शहर ट्रैफिक कमांड सेंटर (Prototype)</h1>
-<p class="muted">शहर का नाम लिखें और "खोजें" दबाएँ। चौराहे और जगहें OpenStreetMap से आएँगी। गाड़ियाँ और signal समय simulation हैं।</p>
+<p class="muted">शहर का नाम लिखें और "खोजें" दबाएँ। जगहें OpenStreetMap से आएँगी। गाड़ियाँ और signal समय simulation हैं।</p>
 
 <input id="city" value="Chandigarh" placeholder="शहर का नाम लिखें">
 <button id="go">खोजें</button>
@@ -26,43 +27,57 @@
 <script>
 const st = document.getElementById('status');
 const out = document.getElementById('out');
+const MIRRORS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter'
+];
 
 function seeded(str){ let h=0; for(const c of str) h=(h*31+c.charCodeAt(0))>>>0; return h; }
-function esc(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-async function geocode(name){
-  const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=in&q=' + encodeURIComponent(name);
-  const r = await fetch(url);
-  const d = await r.json();
-  if(!d.length) throw new Error('शहर नहीं मिला');
-  return d[0];
+function buildQuery(city){
+  return `[out:json][timeout:60];
+area["name"="${city}"]->.a;
+(
+  nwr(area.a)["highway"="traffic_signals"]["name"];
+  nwr(area.a)["amenity"~"hospital|bus_station|college|university|school"]["name"];
+  nwr(area.a)["place"~"suburb|neighbourhood|village|quarter"]["name"];
+);
+out center 300;`;
 }
 
-async function findPlaces(bbox){
-  const [s,n,w,e] = bbox;
-  const q = `[out:json][timeout:25];(
-    node["highway"="traffic_signals"](${s},${w},${n},${e});
-    node["amenity"~"hospital|bus_station|college|university"]["name"](${s},${w},${n},${e});
-    node["place"~"suburb|neighbourhood|village"]["name"](${s},${w},${n},${e});
-  );out 80;`;
-  const r = await fetch('https://overpass-api.de/api/interpreter', {
-    method:'POST',
-    body:'data=' + encodeURIComponent(q)
-  });
-  const d = await r.json();
-  return d.elements.filter(x => x.tags && x.tags.name);
+async function askOverpass(query){
+  let lastErr = '';
+  for(const url of MIRRORS){
+    try{
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'data=' + encodeURIComponent(query)
+      });
+      const text = await r.text();
+      if(!r.ok){ lastErr = `सर्वर ${r.status}`; continue; }
+      try{ return JSON.parse(text); }
+      catch(e){ lastErr = 'सर्वर ने JSON की जगह दूसरा जवाब भेजा (शायद busy है)'; continue; }
+    }catch(e){
+      lastErr = 'नेटवर्क या CORS समस्या: ' + e.message;
+    }
+  }
+  throw new Error(lastErr + '. 30 सेकंड बाद फिर "खोजें" दबाएँ।');
 }
 
-function render(places){
+function render(elements){
   out.innerHTML = '';
-  const rows = places.map(p => {
-    const h = seeded(p.tags.name + p.id);
-    const veh = h % 180 + 20;                 // simulation
-    const amb = h % 9 === 0;                  // simulation
+  const rows = elements.map(p => {
+    const name = p.tags.name;
+    const h = seeded(name + p.id);
+    const veh = h % 180 + 20;           // simulation
+    const amb = h % 9 === 0;            // simulation
     const green = Math.min(90, 25 + Math.round(veh/3));
     const red = 120 - green;
     const crowd = veh>120 ? 'ज़्यादा' : veh>70 ? 'मध्यम' : 'कम';
-    return {name:p.tags.name, type:p.tags.amenity || p.tags.highway || p.tags.place, veh, crowd, green, red, amb};
+    const type = p.tags.amenity || p.tags.highway || p.tags.place || '';
+    return {name, type, veh, crowd, green, red, amb, lat: p.lat ?? p.center?.lat, lon: p.lon ?? p.center?.lon};
   }).sort((a,b)=>b.veh-a.veh);
 
   for(const r of rows){
@@ -70,6 +85,7 @@ function render(places){
     div.className = 'card';
     div.innerHTML =
       `<b>${esc(r.name)}</b> <span class="muted">(${esc(r.type)})</span><br>` +
+      `<span class="muted">${r.lat ? r.lat.toFixed(4)+', '+r.lon.toFixed(4) : ''}</span><br>` +
       `गाड़ियाँ (सिम्युलेशन): ${r.veh} | भीड़: ${r.crowd}<br>` +
       `ग्रीन: ${r.green} सेकंड | लाल: ${r.red} सेकंड` +
       (r.amb ? `<br><span class="amb">🚑 एम्बुलेंस फँसी (सिम्युलेशन)</span>` : '');
@@ -81,15 +97,18 @@ document.getElementById('go').onclick = async () => {
   const city = document.getElementById('city').value.trim();
   if(!city) return;
   out.innerHTML = '';
-  st.textContent = 'शहर ढूँढ रहे हैं...';
+  st.textContent = 'जगहें ढूँढ रहे हैं (20-40 सेकंड लग सकते हैं)...';
   try{
-    const g = await geocode(city);
-    st.textContent = g.display_name + ' — जगहें ढूँढ रहे हैं (कुछ सेकंड लग सकते हैं)...';
-    const places = await findPlaces(g.boundingbox);
-    st.textContent = `${g.display_name} — ${places.length} जगहें मिलीं`;
-    render(places);
+    const data = await askOverpass(buildQuery(city));
+    const els = (data.elements || []).filter(x => x.tags && x.tags.name);
+    if(!els.length){
+      st.textContent = `"${city}" के लिए कोई जगह नहीं मिली। अंग्रेज़ी में नाम लिखकर देखें।`;
+      return;
+    }
+    st.textContent = `${city}: ${els.length} जगहें मिलीं (OpenStreetMap से)`;
+    render(els);
   }catch(err){
-    st.textContent = 'गलती: ' + err.message + '. एक बार फिर "खोजें" दबाएँ।';
+    st.innerHTML = '<span class="err">गलती: ' + esc(err.message) + '</span>';
   }
 };
 </script>
