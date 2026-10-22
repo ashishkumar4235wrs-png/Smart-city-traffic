@@ -9,7 +9,7 @@
   h1{color:#22d3ee;font-size:20px;margin:0 0 6px}
   input,button{padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#fff;font-size:16px;width:100%;box-sizing:border-box;margin-top:8px}
   button{background:#0891b2;font-weight:bold;cursor:pointer}
-  .card{background:#111c33;border:1px solid #1e3a5f;border-radius:10px;padding:12px;margin-top:10px}
+  .card{background:#111c33;border:1px solid #1e3a5f;border-radius:10px;padding:12px;margin-top:10px;line-height:1.7}
   .amb{color:#f87171;font-weight:bold}
   .muted{color:#94a3b8;font-size:13px}
   .err{color:#fca5a5;font-size:14px;margin-top:8px;word-break:break-word}
@@ -17,7 +17,7 @@
 </head>
 <body>
 <h1>🎓 शहर ट्रैफिक कमांड सेंटर (Prototype)</h1>
-<p class="muted">शहर का नाम लिखें, जैसे "Chandigarh" या "Chandigarh Sector 17"। सेक्टर, चौक, मॉल, अस्पताल OpenStreetMap से आएँगे। गाड़ियाँ और signal समय simulation हैं।</p>
+<p class="muted">शहर का नाम लिखें, जैसे "Chandigarh" या "Chandigarh Sector 17"। जगहों के नाम OpenStreetMap से आते हैं। गाड़ियों की गिनती और एम्बुलेंस simulation हैं। बत्ती का समय असली घड़ी से चलता है।</p>
 
 <input id="city" value="Chandigarh" placeholder="जैसे: Chandigarh Sector 17">
 <button id="go">खोजें</button>
@@ -31,6 +31,7 @@ const MIRRORS = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter'
 ];
+let lastEls = null;
 
 function seeded(str){ let h=0; for(const c of str) h=(h*31+c.charCodeAt(0))>>>0; return h; }
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -39,7 +40,7 @@ function buildQuery(city){
   return `[out:json][timeout:90];
 area["name"="${city}"]->.a;
 (
-  nwr(area.a)["name"~"Sector|Chowk|Chowk|Mall|Hospital|PGI|Plaza|Market|ISBT|Airport|Stadium|University|College|Bus|Railway|Junction",i];
+  nwr(area.a)["name"~"Sector|Chowk|Mall|Hospital|PGI|Plaza|Market|ISBT|Airport|Stadium|University|College|Bus|Railway|Junction",i];
   nwr(area.a)["highway"="traffic_signals"]["name"];
   nwr(area.a)["shop"="mall"]["name"];
   nwr(area.a)["amenity"~"hospital|bus_station|college|university"]["name"];
@@ -69,39 +70,60 @@ async function askOverpass(query){
 }
 
 function render(elements){
+  lastEls = elements;
   out.innerHTML = '';
+  const nowSec = Math.floor(Date.now()/1000);
   const rows = elements.map(p => {
     const name = p.tags.name;
     const h = seeded(name + p.id);
-    const veh = h % 180 + 20;           // simulation
-    const amb = h % 9 === 0;            // simulation
+    const veh = h % 180 + 20;                  // सिम्युलेशन: असली गिनती नहीं
     const green = Math.min(90, 25 + Math.round(veh/3));
-    const red = 120 - green;
-    const crowd = veh>120 ? 'ज़्यादा' : veh>70 ? 'मध्यम' : 'कम';
+    const yellow = 3;
+    const red = Math.max(40, 120 - green);
+    const cycle = green + yellow + red;
+    const pos = nowSec % cycle;                // चक्र में अभी की जगह (असली घड़ी)
+    let phase, left;
+    if (pos < green)                 { phase = 'हरी';  left = green - pos; }
+    else if (pos < green + yellow)   { phase = 'पीली'; left = green + yellow - pos; }
+    else                             { phase = 'लाल';  left = cycle - pos; }
+    const amb = h % 9 === 0;                   // सिम्युलेशन
+    const eta = 20 + (h % 60);                 // एम्बुलेंस कितने सेकंड में पहुँचेगी
+    const queue = Math.round(veh * 0.4);       // रुकी गाड़ियाँ (मॉडल)
+    const clear = Math.ceil(queue * 2);        // लगभग 2 सेकंड प्रति गाड़ी
     const type = p.tags.amenity || p.tags.shop || p.tags.highway || p.tags.place || '';
-    const lat = p.lat ?? p.center?.lat, lon = p.lon ?? p.center?.lon;
-    return {name, type, veh, crowd, green, red, amb, lat, lon};
+    return {name, type, veh, green, red, phase, left, amb, eta, clear,
+            lat: p.lat ?? p.center?.lat, lon: p.lon ?? p.center?.lon};
   }).sort((a,b)=>b.veh-a.veh);
 
   for(const r of rows){
     const div = document.createElement('div');
     div.className = 'card';
-    div.innerHTML =
+    const color = r.phase==='लाल' ? '#f87171' : r.phase==='हरी' ? '#4ade80' : '#facc15';
+    let html =
       `<b>${esc(r.name)}</b> <span class="muted">(${esc(r.type)})</span><br>` +
       (r.lat ? `<span class="muted">${r.lat.toFixed(4)}, ${r.lon.toFixed(4)}</span><br>` : '') +
-      `गाड़ियाँ (सिम्युलेशन): ${r.veh} | भीड़: ${r.crowd}<br>` +
-      `ग्रीन: ${r.green} सेकंड | लाल: ${r.red} सेकंड` +
-      (r.amb ? `<br><span class="amb">🚑 एम्बुलेंस फँसी (सिम्युलेशन)</span>` : '');
+      `<span style="color:${color};font-weight:bold">अभी: ${r.phase} बत्ती, ${r.left} सेकंड बाकी</span><br>` +
+      `हरी ${r.green} सेकंड | पीली 3 सेकंड | लाल ${r.red} सेकंड<br>` +
+      `<span class="muted">गाड़ियाँ (सिम्युलेशन, असली गिनती नहीं): ${r.veh}</span>`;
+    if(r.amb){
+      html += `<br><span class="amb">🚑 एम्बुलेंस (सिम्युलेशन) ~${r.eta} सेकंड में पहुँचेगी। ` +
+              `सिग्नल हरा रखें। रुकी गाड़ियाँ लगभग ${r.clear} सेकंड में निकलेंगी।</span>`;
+    }
+    div.innerHTML = html;
     out.appendChild(div);
   }
 }
 
+// हर सेकंड बत्ती का समय अपडेट होगा
+setInterval(() => { if(lastEls && lastEls.length) render(lastEls); }, 1000);
+
 document.getElementById('go').onclick = async () => {
   const typed = document.getElementById('city').value.trim();
   if(!typed) return;
-  const city = typed.split(/\s+/)[0];                       // पहला शब्द = शहर
-  const filter = typed.slice(city.length).trim().toLowerCase(); // बाकी = फ़िल्टर, जैसे "sector 17"
+  const city = typed.split(/\s+/)[0];
+  const filter = typed.slice(city.length).trim().toLowerCase();
   out.innerHTML = '';
+  lastEls = null;
   st.textContent = 'जगहें ढूँढ रहे हैं (20-60 सेकंड लग सकते हैं)...';
   try{
     const data = await askOverpass(buildQuery(city));
